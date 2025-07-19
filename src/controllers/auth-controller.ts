@@ -28,12 +28,12 @@ exports.register = async (req: Request, res: Response) => {
     }
 
     // daftarkan akun ke penyimpanan data
-    await authService.register(input);
+    const registeredUser = await authService.register(input);
 
     return res.status(200).json({
       statusCode: 200,
       message: 'Akun baru telah terdaftar!',
-      data: input,
+      data: registeredUser,
     });
   } catch (error: any) {
     console.error(error);

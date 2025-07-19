@@ -9,9 +9,10 @@ interface JwtPayload {
   sub: number;
   name?: string;
   email?: string;
+  role?: string;
 }
 
-const authMiddleware = (
+const authenticationMiddleware = (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction,
@@ -36,6 +37,7 @@ const authMiddleware = (
       id: decoded.sub,
       name: decoded.name,
       email: decoded.email,
+      role: decoded.role,
     };
 
     next();
@@ -47,4 +49,4 @@ const authMiddleware = (
   }
 };
 
-module.exports = authMiddleware;
+module.exports = authenticationMiddleware;

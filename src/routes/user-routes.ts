@@ -1,12 +1,21 @@
 const router = require('express').Router();
 
-const authMiddleware = require('../middlewares/auth-middleware');
+const authenticationMiddleware = require('../middlewares/authentication-middleware');
+const onlyAdminMiddleware = require('../middlewares/only-admin-middleware');
 const userController = require('../controllers/user-controller');
 
 // GET /api/users
 router.get('/', userController.index);
 
 // PATCH /api/users
-router.patch('/', authMiddleware, userController.update);
+router.patch('/', authenticationMiddleware, userController.update);
+
+// DELETE /api/users/:id -> hanya boleh oleh ADMIN
+router.delete(
+  '/:id',
+  authenticationMiddleware,
+  onlyAdminMiddleware,
+  userController.deleteById,
+);
 
 module.exports = router;

@@ -6,4 +6,5 @@ export interface UserData {
   tanggalLahir: Date;
   sudahLulus: boolean;
   skorKeseluruhan: number;
+  role: string;
 }

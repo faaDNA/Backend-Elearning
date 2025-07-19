@@ -5,5 +5,6 @@ export type AuthenticatedRequest = ExpressRequest & {
     id: number;
     name?: string;
     email?: string;
+    role?: string;
   },
 };
