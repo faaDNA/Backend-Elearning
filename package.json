@@ -1,0 +1,24 @@
+{
+  "name": "boilerplate-day-1",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Backend boilerplate for KSM Cyber Backend Bootcamp day#1",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "keywords": [],
+  "author": "daffanaufal",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/formidable": "^3.4.5",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "formidable": "^3.5.4"
+  }
+}
