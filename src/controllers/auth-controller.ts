@@ -6,7 +6,8 @@ const authService = require('../services/auth-service');
 exports.register = async (req: Request, res: Response) => {
   const input = req.body;
   const requiredFields: string[] = [
-    'email', 'password', 'name',
+    'email', 'password', 'name', 'tanggalLahir',
+    'sudahLulus', 'skorKeseluruhan',
   ];
 
   try {
@@ -19,7 +20,7 @@ exports.register = async (req: Request, res: Response) => {
     }
     
     // cek apakah akun sudah terdaftar
-    if (await authService.findUserByEmail(input.email)) {
+    if (authService.findUserByEmail(input.email)) {
       return res.status(400).json({
         statusCode: 400,
         message: 'Akun sudah terdaftar!',
