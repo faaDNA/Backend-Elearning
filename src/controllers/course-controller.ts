@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 // import { AuthenticatedRequest } from '../types/authenticated-request-type';
 
-const courseService = require('../services/course-service');
+const courseService = require("../services/course-service");
 
 // mendapatkan list kursus
 exports.index = async (req: Request, res: Response) => {
@@ -10,18 +10,17 @@ exports.index = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       statusCode: 200,
-      message: 'Berhasil mendapatkan data kursus!',
+      message: "Berhasil mendapatkan data kursus!",
       data: courses,
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       statusCode: 500,
-      message: 'Error internal server!',
+      message: "Error internal server!",
     });
   }
-}
+};
 
 // mendapatkan kursus berdasarkan slug
 exports.show = async (req: Request, res: Response) => {
@@ -33,24 +32,23 @@ exports.show = async (req: Request, res: Response) => {
     if (!course) {
       return res.status(404).json({
         statusCode: 404,
-        message: 'Kursus tidak ditemukan',
+        message: "Kursus tidak ditemukan",
       });
     }
 
     return res.status(200).json({
       statusCode: 200,
-      message: 'Berhasil mendapatkan data kursus!',
+      message: "Berhasil mendapatkan data kursus!",
       data: course,
     });
-
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       statusCode: 500,
-      message: 'Error internal server!',
+      message: "Error internal server!",
     });
   }
-}
+};
 
 // menambahkan kursus baru
 exports.create = async (req: Request, res: Response) => {
@@ -63,14 +61,14 @@ exports.create = async (req: Request, res: Response) => {
 
     return res.status(201).json({
       statusCode: 201,
-      message: 'Berhasil menambahkan kursus baru!',
+      message: "Berhasil menambahkan kursus baru!",
       data: newCourse,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       statusCode: 500,
-      message: 'Error internal server!',
+      message: "Error internal server!",
     });
   }
 };
@@ -81,29 +79,31 @@ exports.update = async (req: Request, res: Response) => {
   const data = req.body;
   const files: any = req.files;
   data.files = files;
-  
+
   try {
     const existingCourse = await courseService.getCourseBySlug(slug);
     if (!existingCourse) {
       return res.status(404).json({
         statusCode: 404,
-        message: 'Kursus tidak ditemukan',
+        message: "Kursus tidak ditemukan",
       });
     }
 
-    const updatedCourse = await courseService.updateCourse(existingCourse, data);
+    const updatedCourse = await courseService.updateCourse(
+      existingCourse,
+      data
+    );
 
     return res.status(201).json({
       statusCode: 201,
-      message: 'Berhasil mengubah data kursus!',
+      message: "Berhasil mengubah data kursus!",
       data: updatedCourse,
     });
-    
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       statusCode: 500,
-      message: 'Error internal server!',
+      message: "Error internal server!",
     });
   }
 };
@@ -117,7 +117,7 @@ exports.destroy = async (req: Request, res: Response) => {
     if (!existingCourse) {
       return res.status(404).json({
         statusCode: 404,
-        message: 'Kursus tidak ditemukan',
+        message: "Kursus tidak ditemukan",
       });
     }
 
@@ -125,18 +125,17 @@ exports.destroy = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       statusCode: 200,
-      message: 'Berhasil menghapus data kursus!',
+      message: "Berhasil menghapus data kursus!",
       data: deletedCourse,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       statusCode: 500,
-      message: 'Error internal server!',
+      message: "Error internal server!",
     });
   }
 };
-
 
 // // mendapatkan list kursus yang diikuti pengguna
 // exports.enrolledCourses = async (req: AuthenticatedRequest, res: Response) => {

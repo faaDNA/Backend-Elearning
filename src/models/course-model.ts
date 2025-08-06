@@ -1,8 +1,8 @@
-const Model = require('../config/database/orm');
+const Model = require("../config/database/orm");
 
 export class Course extends Model {
   static softDelete = true;
-  static tableName = 'courses';
+  static tableName = "courses";
 
   id?: number;
   title!: string;
