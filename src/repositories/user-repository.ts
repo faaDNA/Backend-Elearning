@@ -1,9 +1,10 @@
-import { User } from '../models/user-model';
+import { User, UserData } from '../models/user-model';
 
-exports.findByEmail = async (email: string): Promise<User | undefined> => {
-  return User.query().findOne({ email });
+exports.findByEmail = async (email: string): Promise<UserData | null> => {
+  return User.findOne({ email }).exec();
 };
 
-exports.createUser = async (userData: Partial<User>): Promise<User> => {
-  return User.query().insert(userData);
+exports.createUser = async (userData: Partial<UserData>): Promise<UserData> => {
+  const user = new User(userData);
+  return user.save();
 };
