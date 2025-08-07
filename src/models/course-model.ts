@@ -8,6 +8,7 @@ export interface CourseData {
   id: number;
   title: string;
   description: string;
+  image!: string;
   instructor: string;
   duration: string;
   level: "Beginner" | "Intermediate" | "Advanced";

@@ -1,12 +1,12 @@
 /**
  * File storage configuration
  */
-let driver = process.env.STORAGE_DRIVER || 'local';
+let driver = process.env.STORAGE_DRIVER || "local";
 let storage: any = {};
 
 switch (driver) {
-  case 'cloudinary':
-    const cloudinary = require('cloudinary').v2;
+  case "cloudinary":
+    const cloudinary = require("cloudinary").v2;
 
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -16,13 +16,13 @@ switch (driver) {
 
     storage = cloudinary;
     break;
-  
-  case 'gdrive':
+
+  case "gdrive":
     // inisialisasi google drive
     break;
-  
+
   default:
-    driver = 'local';
+    driver = "local";
     break;
 }
 

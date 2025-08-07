@@ -1,33 +1,31 @@
-import { User } from '../models/user-model';
+import { User } from "../models/user-model";
 
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const userRepository = require('../repositories/user-repository');
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const userRepository = require("../repositories/user-repository");
 
-const JWT_SECRET = process.env.JWT_SECRET || 'rahasia';
+const JWT_SECRET = process.env.JWT_SECRET || "rahasia";
 
 /**
  * cari user berdasarakan email
- * 
- * @param email 
- * @returns 
+ *
+ * @param email
+ * @returns
  */
-const findUserByEmail = async (
-  email: string,
-): Promise<User | undefined> => {
+const findUserByEmail = async (email: string): Promise<User | undefined> => {
   return await userRepository.findByEmail(email);
 };
 
 /**
  * cari akun pengguna
- * 
- * @param email 
- * @param password 
- * @returns 
+ *
+ * @param email
+ * @param password
+ * @returns
  */
 const findAccount = async (
   email: string,
-  password: string,
+  password: string
 ): Promise<User | undefined> => {
   const user = await findUserByEmail(email);
 
@@ -43,31 +41,27 @@ const findAccount = async (
 
 /**
  * daftarkan pengguna
- * 
- * @param input 
- * @returns 
+ *
+ * @param input
+ * @returns
  */
-const register = async (
-  input: User,
-): Promise<User> => {
+const register = async (input: User): Promise<User> => {
   const hashedPassword = await bcrypt.hash(input.password, 10);
   input.password = hashedPassword;
 
   // secara default, assign role menjadi 'student'
-  input.role = 'student';
+  input.role = "student";
 
   return await userRepository.createUser(input);
 };
 
 /**
  * otentikasi pengguna dengan memberikan token JWT
- * 
- * @param user 
- * @returns 
+ *
+ * @param user
+ * @returns
  */
-const authenticate = (
-  user: User,
-) => {
+const authenticate = (user: User) => {
   const payload = {
     sub: user.id, // JWT subject claim
     name: user.name,
@@ -76,7 +70,7 @@ const authenticate = (
   };
 
   const token = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: '1h',
+    expiresIn: "1h",
   });
 
   return token;

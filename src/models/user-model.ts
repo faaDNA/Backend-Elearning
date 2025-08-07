@@ -1,18 +1,19 @@
 const Model = require("../config/database/orm");
 
 export class User extends Model {
-  static softDelete = true;
+  static softDelete = false; // Disable soft delete untuk sementara
   static tableName = "users";
 
-  id?: number;
-  name!: string;
+  id!: number;
   email!: string;
   password!: string;
-  role!: string;
-  tanggalLahir: Date;
-  sudahLulus: boolean;
-  skorKeseluruhan: number;
-  created_at?: Date;
-  updated_at?: Date;
-  deleted_at?: Date;
+  name?: string;
+  tanggal_lahir?: string;
+  sudah_lulus?: boolean;
+  skor_keseluruhan?: number;
+  role?: string;
+  profile_picture?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string;
 }

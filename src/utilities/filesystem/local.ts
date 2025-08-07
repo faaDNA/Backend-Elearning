@@ -1,18 +1,18 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const UPLOAD_DIR = path.join(__dirname, '../../../public/uploads');
+const UPLOAD_DIR = path.join(__dirname, "../../../public/uploads");
 
 /**
  * Upload file to local
- * 
- * @param file 
- * @param directory 
- * @returns 
+ *
+ * @param file
+ * @param directory
+ * @returns
  */
 const upload = async (
   file: Express.Multer.File,
-  directory: string = '',
+  directory: string = ""
 ): Promise<any> => {
   try {
     const filename = file.originalname;
@@ -35,12 +35,10 @@ const upload = async (
 
 /**
  * Removes local file
- * 
- * @param filePath 
+ *
+ * @param filePath
  */
-const remove = async (
-  filePath: string,
-): Promise<void> => {
+const remove = async (filePath: string): Promise<void> => {
   try {
     const fullPath = path.join(UPLOAD_DIR, filePath);
 
@@ -54,16 +52,16 @@ const remove = async (
 
 /**
  * Updates local file
- * 
- * @param oldFilePath 
- * @param newFile 
- * @param directory 
- * @returns 
+ *
+ * @param oldFilePath
+ * @param newFile
+ * @param directory
+ * @returns
  */
 const update = async (
   oldFilePath: string,
   newFile: Express.Multer.File,
-  directory: string = '',
+  directory: string = ""
 ): Promise<any> => {
   try {
     await remove(oldFilePath);

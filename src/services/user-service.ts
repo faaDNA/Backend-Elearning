@@ -1,5 +1,5 @@
-import { User } from '../models/user-model';
-const storedUsers = require('../data/user-data');
+import { User } from "../models/user-model";
+const storedUsers = require("../data/user-data");
 
 // cari user berdasarkan id nya
 const findUserById = (id: number): User | undefined => {
@@ -15,10 +15,7 @@ exports.getUsers = (): User => {
 };
 
 // ubah data user
-exports.updateUserById = (
-  id: number,
-  input: User,
-): User | undefined => {
+exports.updateUserById = (id: number, input: User): User | undefined => {
   const user = findUserById(id);
   if (!user) return undefined;
 
@@ -27,9 +24,7 @@ exports.updateUserById = (
 };
 
 // hapus data user berdasarkan id nya
-exports.deleteUserById = (
-  id: number,
-): User | undefined => {
+exports.deleteUserById = (id: number): User | undefined => {
   const user = findUserById(id);
   if (!user) return undefined;
 
