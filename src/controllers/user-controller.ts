@@ -229,10 +229,7 @@ export const uploadProfilePicture = async (
 };
 
 // upload photo (alternative endpoint dengan field name "photo")
-export const uploadPhoto = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
+export const uploadPhoto = async (req: AuthenticatedRequest, res: Response) => {
   try {
     console.log("Upload photo request received");
     console.log("File:", req.file);
