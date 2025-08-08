@@ -7,7 +7,9 @@ export class CourseRepository {
   // Helper untuk generate ID baru
   private generateId(): number {
     const maxId =
-      this.courses.length > 0 ? Math.max(...this.courses.map((c) => c.id)) : 0;
+      this.courses.length > 0
+        ? Math.max(...this.courses.map((c) => c.id || 0))
+        : 0;
     return maxId + 1;
   }
 

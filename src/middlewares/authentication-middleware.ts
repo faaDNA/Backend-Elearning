@@ -1,12 +1,11 @@
-import { Response, NextFunction } from 'express';
-import { AuthenticatedRequest } from '../types/authenticated-request-type';
+import { Response, NextFunction } from "express";
+import { AuthenticatedRequest } from "../types/authenticated-request-type";
+import jwt from "jsonwebtoken";
 
-const jwt = require('jsonwebtoken');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'rahasia';
+const JWT_SECRET = process.env.JWT_SECRET || "rahasia";
 
 interface JwtPayload {
-  sub: number;
+  sub: string | number;
   name?: string;
   email?: string;
   role?: string;
@@ -15,14 +14,14 @@ interface JwtPayload {
 const authenticationMiddleware = (
   req: AuthenticatedRequest,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({
       statusCode: 401,
-      message: 'Perlu otentikasi!',
+      message: "Perlu otentikasi!",
     });
   }
 
@@ -34,7 +33,7 @@ const authenticationMiddleware = (
 
     // masukkan data otentikasi user ke aliran request selanjutnya
     req.user = {
-      id: decoded.sub,
+      id: typeof decoded.sub === "string" ? parseInt(decoded.sub) : decoded.sub,
       name: decoded.name,
       email: decoded.email,
       role: decoded.role,
@@ -44,9 +43,9 @@ const authenticationMiddleware = (
   } catch (err) {
     return res.status(401).json({
       statusCode: 401,
-      message: 'Token invalid atau kedaluwarsa!',
+      message: "Token invalid atau kedaluwarsa!",
     });
   }
 };
 
-module.exports = authenticationMiddleware;
+export default authenticationMiddleware;

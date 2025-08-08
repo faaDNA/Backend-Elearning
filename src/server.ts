@@ -1,81 +1,88 @@
-import { createServer } from "http";
-import { IncomingForm } from "formidable";
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import routes from "./routes";
+import { connectDB } from "./config/database/orm";
 
-const PORT = 3000;
+// Load environment variables
+dotenv.config();
 
-const server = createServer((req, res) => {
-  if (req.method === "GET" && req.url === "/") {
-    res.setHeader("Content-Type", "application/json");
-    res.statusCode = 200;
-    res.end(
-      JSON.stringify({
-        message: "Ini adalah endpoint GET sederhana!",
-        info: "Akses endpoint ini dengan metode GET",
-      })
-    );
-  } else if (req.method === "POST" && req.url === "/data") {
-    const contentType = req.headers["content-type"] || "";
-    if (contentType.includes("multipart/form-data")) {
-      const form = new IncomingForm();
-      form.parse(req, (err, fields, files) => {
-        res.setHeader("Content-Type", "application/json");
-        if (err) {
-          res.statusCode = 400;
-          res.end(
-            JSON.stringify({
-              message: "Gagal parsing form-data!",
-              error: err.message,
-            })
-          );
-        } else {
-          res.statusCode = 200;
-          res.end(
-            JSON.stringify({
-              message: "Data form-data diterima!",
-              fields,
-              files,
-            })
-          );
-        }
-      });
-    } else {
-      let body = "";
-      req.on("data", (chunk) => {
-        body += chunk;
-      });
-      req.on("end", () => {
-        res.setHeader("Content-Type", "application/json");
-        if (contentType.includes("application/json")) {
-          try {
-            const data = body ? JSON.parse(body) : null;
-            res.statusCode = 200;
-            res.end(JSON.stringify({ message: "Data JSON diterima!", data }));
-          } catch (err) {
-            res.statusCode = 400;
-            res.end(JSON.stringify({ message: "Format JSON tidak valid!" }));
-          }
-        } else if (contentType.includes("application/x-www-form-urlencoded")) {
-          const parsed: Record<string, string> = {};
-          body.split("&").forEach((pair) => {
-            const [key, value] = pair.split("=");
-            parsed[decodeURIComponent(key)] = decodeURIComponent(value || "");
-          });
-          res.statusCode = 200;
-          res.end(
-            JSON.stringify({ message: "Data form diterima!", data: parsed })
-          );
-        } else {
-          res.statusCode = 415;
-          res.end(JSON.stringify({ message: "Content-Type tidak didukung!" }));
-        }
-      });
-    }
-  } else {
-    res.statusCode = 404;
-    res.end("Endpoint tidak ditemukan!");
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Simple test routes
+app.get("/", (req, res) => {
+  res.json({
+    message: "Backend E-Learning API is running!",
+    status: "OK",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/api", (req, res) => {
+  res.json({
+    message: "API endpoint is working!",
+    version: "1.0.0",
+  });
+});
+
+// Routes
+app.use("/api", routes);
+
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({
+    message: "Backend E-Learning API is running!",
+    status: "OK",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Error handling middleware
+app.use(
+  (
+    err: any,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error(err.stack);
+    res.status(500).json({
+      message: "Something went wrong!",
+      error:
+        process.env.NODE_ENV === "development"
+          ? err.message
+          : "Internal server error",
+    });
   }
+);
+
+// 404 handler
+app.use("*", (req, res) => {
+  res.status(404).json({
+    message: "Route not found",
+  });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server berjalan di http://localhost:${PORT}`);
-});
+// Start server
+const startServer = async () => {
+  try {
+    // Initialize database
+    await connectDB();
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
+      console.log(`📝 API Documentation: http://localhost:${PORT}/api`);
+    });
+  } catch (error) {
+    console.error("❌ Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

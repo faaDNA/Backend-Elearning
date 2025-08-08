@@ -1,15 +1,25 @@
+import { Model } from "../config/database/orm";
 import { User } from "./user-model";
 import { Course } from "./course-model";
 
-const Model = require("../config/database/orm");
+export interface UserCourseData {
+  id?: number;
+  user_id: number;
+  course_id: number;
+  enrolled_at?: Date;
+  completed_at?: Date;
+  progress?: number;
+}
 
-export class UserCourse extends Model {
+export class UserCourse extends Model implements UserCourseData {
   static tableName = "user_courses";
 
   id?: number;
   user_id!: number;
   course_id!: number;
-  enrolled_at!: Date;
+  enrolled_at?: Date;
+  completed_at?: Date;
+  progress?: number;
 
   static relationMappings = {
     user: {

@@ -1,14 +1,10 @@
-const Model = require("../config/database/orm");
-
-export class Course extends Model {
-  static softDelete = true;
-  static tableName = "courses";
+import { Model } from "../config/database/orm";
 
 export interface CourseData {
-  id: number;
+  id?: number;
   title: string;
   description: string;
-  image!: string;
+  image?: string;
   instructor: string;
   duration: string;
   level: "Beginner" | "Intermediate" | "Advanced";
@@ -17,8 +13,70 @@ export interface CourseData {
   max_participants: number;
   current_participants: number;
   is_active: boolean;
-  created_at: Date;
-  updated_at: Date;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export class Course extends Model implements CourseData {
+  static softDelete = true;
+  static tableName = "courses";
+
+  id!: number;
+  title!: string;
+  description!: string;
+  image?: string;
+  instructor!: string;
+  duration!: string;
+  level!: "Beginner" | "Intermediate" | "Advanced";
+  category!: string;
+  price!: number;
+  max_participants!: number;
+  current_participants!: number;
+  is_active!: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+
+  static get jsonSchema() {
+    return {
+      type: "object",
+      required: [
+        "title",
+        "description",
+        "instructor",
+        "duration",
+        "level",
+        "category",
+        "price",
+        "max_participants",
+      ],
+      properties: {
+        id: { type: "integer" },
+        title: { type: "string", minLength: 1 },
+        description: { type: "string", minLength: 1 },
+        image: { type: "string" },
+        instructor: { type: "string", minLength: 1 },
+        duration: { type: "string", minLength: 1 },
+        level: {
+          type: "string",
+          enum: ["Beginner", "Intermediate", "Advanced"],
+        },
+        category: { type: "string", minLength: 1 },
+        price: { type: "number", minimum: 0 },
+        max_participants: { type: "integer", minimum: 1 },
+        current_participants: { type: "integer", minimum: 0 },
+        is_active: { type: "boolean" },
+      },
+    };
+  }
+
+  $beforeInsert() {
+    this.created_at = new Date();
+    this.updated_at = new Date();
+  }
+
+  $beforeUpdate() {
+    this.updated_at = new Date();
+  }
 }
 
 // Sample data courses untuk development

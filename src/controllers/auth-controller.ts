@@ -1,60 +1,65 @@
-import { Request, Response } from 'express';
-
-const authService = require('../services/auth-service');
+import { Request, Response } from "express";
+import * as authService from "../services/auth-service";
 
 // registrasi user
-exports.register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
   const input = req.body;
   const requiredFields: string[] = [
-    'email', 'password', 'name', 'tanggalLahir',
-    'sudahLulus', 'skorKeseluruhan',
+    "email",
+    "password",
+    "name",
+    "tanggalLahir",
+    "sudahLulus",
+    "skorKeseluruhan",
   ];
 
   try {
     // cek apakah semua required fields ada di input
-    if (!requiredFields.every(prop => prop in input)) {
+    if (!requiredFields.every((prop) => prop in input)) {
       return res.status(400).json({
         statusCode: 400,
-        message: 'Input harus lengkap!',
+        message: "Input harus lengkap!",
       });
     }
-    
+
     // cek apakah akun sudah terdaftar
-    if (authService.findUserByEmail(input.email)) {
+    const existingUser = await authService.findUserByEmail(input.email);
+    if (existingUser) {
       return res.status(400).json({
         statusCode: 400,
-        message: 'Akun sudah terdaftar!',
+        message: "Akun sudah terdaftar!",
       });
     }
 
     // daftarkan akun ke penyimpanan data
     const registeredUser = await authService.register(input);
 
-    return res.status(200).json({
-      statusCode: 200,
-      message: 'Akun baru telah terdaftar!',
+    return res.status(201).json({
+      statusCode: 201,
+      message: "Akun baru telah terdaftar!",
       data: registeredUser,
     });
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
       statusCode: 500,
-      message: 'Error internal server!',
+      message: "Error internal server!",
+      error: error.message,
     });
   }
 };
 
 // login user
-exports.login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
   const input = req.body;
-  const requiredFields: string[] = ['email', 'password'];
+  const requiredFields: string[] = ["email", "password"];
 
   try {
     // cek apakah semua required fields ada di input
-    if (!requiredFields.every(prop => prop in input)) {
+    if (!requiredFields.every((prop) => prop in input)) {
       return res.status(400).json({
         statusCode: 400,
-        message: 'Input harus lengkap!',
+        message: "Input harus lengkap!",
       });
     }
 
@@ -63,7 +68,7 @@ exports.login = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(404).json({
         statusCode: 404,
-        message: 'Akun tidak ditemukan!',
+        message: "Akun tidak ditemukan!",
       });
     }
 
@@ -72,14 +77,15 @@ exports.login = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       statusCode: 200,
-      message: 'Berhasil login!',
+      message: "Berhasil login!",
       data: { user, token },
     });
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
       statusCode: 500,
-      message: 'Error internal server!',
+      message: "Error internal server!",
+      error: error.message,
     });
   }
 };

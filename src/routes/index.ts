@@ -1,15 +1,35 @@
-const router = require("express").Router();
+import { Router } from "express";
+import authRoutes from "./auth-routes";
+import userRoutes from "./user-routes";
+import bookRoutes from "./book-routes";
+import courseRoutes from "./course-routes";
+
+const router = Router();
 
 // handle semua route /api/auth ke router otentikasi
-router.use("/auth", require("./auth-routes"));
+router.use("/auth", authRoutes);
 
 // handle semua route /api/users ke router user
-router.use("/users", require("./user-routes"));
+router.use("/users", userRoutes);
 
 // handle semua route /api/books ke router book
-router.use("/books", require("./book-routes"));
+router.use("/books", bookRoutes);
 
 // handle semua route /api/courses ke router course
-router.use("/courses", require("./course-routes"));
+router.use("/courses", courseRoutes);
 
-module.exports = router;
+// API documentation endpoint
+router.get("/", (req, res) => {
+  res.json({
+    message: "E-Learning API Documentation",
+    version: "1.0.0",
+    endpoints: {
+      auth: "/api/auth - Authentication endpoints",
+      users: "/api/users - User management endpoints",
+      books: "/api/books - Book management endpoints",
+      courses: "/api/courses - Course management endpoints",
+    },
+  });
+});
+
+export default router;

@@ -1,25 +1,44 @@
 import { Router } from "express";
-import { BookController } from "../controllers/book-controller";
-
-// const authenticationMiddleware = require("../middlewares/authentication-middleware");
-// const onlyAdminMiddleware = require("../middlewares/only-admin-middleware");
+import authenticationMiddleware from "../middlewares/authentication-middleware";
+import onlyAdminMiddleware from "../middlewares/only-admin-middleware";
+import * as bookController from "../controllers/book-controller";
 
 const router = Router();
-const bookController = new BookController();
 
 // Public routes - bisa diakses tanpa autentikasi
 router.get("/", bookController.getAllBooks); // GET /books - Mendapatkan semua buku
 router.get("/search", bookController.searchBooks); // GET /books/search - Mencari buku
-router.get("/in-stock", bookController.getBooksInStock); // GET /books/in-stock - Buku dengan stok tersedia
-router.get("/genres", bookController.getAvailableGenres); // GET /books/genres - Genre yang tersedia
+router.get("/active", bookController.getActiveBooks); // GET /books/active - Buku aktif
+router.get("/categories", bookController.getAvailableCategories); // GET /books/categories - Kategori yang tersedia
 router.get("/:id", bookController.getBookById); // GET /books/:id - Mendapatkan buku berdasarkan ID
 
-// Sementara semua endpoint bisa diakses tanpa authentication untuk testing
-router.post("/", bookController.createBook); // POST /books - Membuat buku baru
-router.put("/:id", bookController.updateBook); // PUT /books/:id - Update buku
-router.patch("/:id/stock", bookController.updateBookStock); // PATCH /books/:id/stock - Update stok
-router.delete("/:id", bookController.deleteBook); // DELETE /books/:id - Hapus buku
+// Admin only routes - perlu autentikasi dan role admin
+router.post(
+  "/",
+  authenticationMiddleware as any,
+  onlyAdminMiddleware as any,
+  bookController.createBook as any
+); // POST /books - Membuat buku baru (admin only)
+
+router.patch(
+  "/:id",
+  authenticationMiddleware as any,
+  onlyAdminMiddleware as any,
+  bookController.updateBook as any
+); // PATCH /books/:id - Update buku (admin only)
+
+router.patch(
+  "/:id/stock",
+  authenticationMiddleware as any,
+  onlyAdminMiddleware as any,
+  bookController.updateBookStock as any
+); // PATCH /books/:id/stock - Update stok (admin only)
+
+router.delete(
+  "/:id",
+  authenticationMiddleware as any,
+  onlyAdminMiddleware as any,
+  bookController.deleteBook as any
+); // DELETE /books/:id - Hapus buku (admin only)
 
 export default router;
-
-module.exports = router;

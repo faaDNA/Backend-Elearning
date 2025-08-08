@@ -1,4 +1,11 @@
-const storage = require("../../config/storage");
+import cloudinary from "cloudinary";
+
+// Configure Cloudinary
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 /**
  * Upload file to Cloudinary
@@ -7,11 +14,11 @@ const storage = require("../../config/storage");
  * @param directory - Directory path
  * @returns
  */
-const upload = async (
+export const upload = async (
   file: Express.Multer.File,
-  directory: string
-): Promise<any> => {
-  return new Promise(async (resolve, reject) => {
+  directory: string = "uploads"
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
     try {
       if (!file || !file.buffer) {
         return reject(new Error("Invalid or empty file"));
@@ -21,19 +28,24 @@ const upload = async (
         folder: directory,
         format: "webp",
         resource_type: "image",
-        transformation: [],
+        quality: "auto",
+        fetch_format: "auto",
       };
 
-      const stream = storage.uploader.upload_stream(
+      const stream = cloudinary.v2.uploader.upload_stream(
         uploadOptions,
         (error: any, result: any) => {
-          if (error) return reject(error);
+          if (error) {
+            console.error("Cloudinary upload error:", error);
+            return reject(error);
+          }
           resolve(result.secure_url);
         }
       );
 
       stream.end(file.buffer);
     } catch (error) {
+      console.error("Upload error:", error);
       reject(error);
     }
   });
@@ -45,21 +57,22 @@ const upload = async (
  * @param filePath - Public Cloudinary URL or relative path
  * @returns
  */
-const remove = async (filePath: string): Promise<void> => {
+export const remove = async (filePath: string): Promise<void> => {
   try {
-    const parsed = new URL(filePath);
-    const parts = parsed.pathname.split("/");
-    const publicId = parts
+    // Extract public_id from Cloudinary URL
+    const urlParts = filePath.split("/");
+    const fileNameWithExtension = urlParts[urlParts.length - 1];
+    const publicId = urlParts
       .slice(-2)
       .join("/")
-      .replace(/\.[^/.]+$/, "")
-      .replace(/\.webp$/, "");
+      .replace(/\.[^/.]+$/, "");
 
-    await storage.uploader.destroy(publicId, {
+    await cloudinary.v2.uploader.destroy(publicId, {
       resource_type: "image",
       invalidate: true,
     });
   } catch (error: any) {
+    console.error("Cloudinary remove error:", error);
     throw new Error(`Error removing Cloudinary file: ${error.message}`);
   }
 };
@@ -72,82 +85,21 @@ const remove = async (filePath: string): Promise<void> => {
  * @param directory
  * @returns
  */
-const update = async (
+export const update = async (
   oldFilePath: string,
   newFile: Express.Multer.File,
-  directory: string
+  directory: string = "uploads"
 ): Promise<string> => {
   try {
-    if (oldFilePath) await remove(oldFilePath);
-    return await upload(newFile, directory);
-  } catch (error: any) {
-    throw new Error(`Error updating Cloudinary file: ${error.message}`);
-  }
-};
-
-module.exports = { upload, remove, update };
-
-const storage = require("../../config/storage");
-
-const upload = async (file: any, directory: string): Promise<any> => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!file || !file.data || file.data.length === 0) {
-        return reject(new Error("Invalid or empty file"));
-      }
-
-      const stream = storage.uploader.upload_stream(
-        {
-          format: "webp",
-          resource_type: "image",
-          directory,
-        },
-        (error: any, result: any) => {
-          if (error) return reject(new Error(error));
-          resolve({
-            secure_url: result.secure_url,
-            name: file.name,
-          });
-        }
-      );
-
-      stream.end(file.data);
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-exports.upload = upload;
-
-const remove = async (name: string) => {
-  const arr = name.split("/");
-  const publicId = arr
-    .slice(-2)
-    .join("/")
-    .replace(/\.[^/.]+$/, "");
-
-  return storage.uploader.destroy(publicId, {
-    resource_type: "image",
-    invalidate: true,
-  });
-};
-exports.remove = remove;
-
-exports.update = async (
-  oldFilePath: string,
-  newFile: any,
-  directory: string
-) => {
-  try {
+    // Remove old file if exists
     if (oldFilePath) {
-      // Delete old file if it exists
       await remove(oldFilePath);
     }
 
     // Upload new file
-    const uploadedFile: any = await upload(newFile, directory);
-    return uploadedFile.secure_url;
+    return await upload(newFile, directory);
   } catch (error: any) {
-    throw new Error(`Error updating file: ${error.message}`);
+    console.error("Cloudinary update error:", error);
+    throw new Error(`Error updating Cloudinary file: ${error.message}`);
   }
 };

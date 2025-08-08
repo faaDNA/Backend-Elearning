@@ -1,11 +1,10 @@
 import { Request, Response } from "express";
 import { AuthenticatedRequest } from "../types/authenticated-request-type";
-
-const userService = require("../services/user-service");
-const filesystem = require("../utilities/filesystem");
+import * as userService from "../services/user-service";
+import * as cloudinaryUtil from "../utilities/filesystem/cloudinary";
 
 // mendapatkan list users
-exports.index = async (req: Request, res: Response) => {
+export const index = async (req: Request, res: Response) => {
   try {
     const userData = await userService.getUsers();
 
@@ -26,15 +25,13 @@ exports.index = async (req: Request, res: Response) => {
     return res.status(500).json({
       statusCode: 500,
       message: "Error internal server!",
+      error: error.message,
     });
   }
 };
 
-// update user
-exports.update = async (req: AuthenticatedRequest, res: Response) => {
-  // cek apakah role = student
-  // alur proses utama untuk update khusus endpoint. mahastudent
-
+// update user (self update)
+export const update = async (req: AuthenticatedRequest, res: Response) => {
   const userId = req.user.id;
   const input = req.body;
 
@@ -53,7 +50,7 @@ exports.update = async (req: AuthenticatedRequest, res: Response) => {
 
     return res.status(200).json({
       statusCode: 200,
-      message: "Berhasil update data user!",
+      message: "Berhasil update user!",
       data: updatedUser,
     });
   } catch (error: any) {
@@ -61,17 +58,73 @@ exports.update = async (req: AuthenticatedRequest, res: Response) => {
     return res.status(500).json({
       statusCode: 500,
       message: "Error internal server!",
+      error: error.message,
     });
   }
 };
 
-// hapus user berdasarkan id nya
-exports.deleteById = async (req: AuthenticatedRequest, res: Response) => {
-  const userId = req.params.id;
+// update user by admin (patch method - hanya admin yang bisa)
+export const updateByAdmin = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const { userId } = req.params;
+  const input = req.body;
 
   try {
+    // Check if requester is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        statusCode: 403,
+        message: "Access denied! Only admin can update user data.",
+      });
+    }
+
+    // cek apakah target user ada
+    const user = await userService.findUserById(parseInt(userId));
+    if (!user) {
+      return res.status(404).json({
+        statusCode: 404,
+        message: "User tidak ditemukan!",
+      });
+    }
+
+    // update data user
+    const updatedUser = await userService.updateUserById(
+      parseInt(userId),
+      input
+    );
+
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Berhasil update user data by admin!",
+      data: updatedUser,
+    });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({
+      statusCode: 500,
+      message: "Error internal server!",
+      error: error.message,
+    });
+  }
+};
+
+// hapus user berdasarkan ID (hanya admin)
+export const destroy = async (req: AuthenticatedRequest, res: Response) => {
+  const { userId } = req.params;
+
+  try {
+    // Check if requester is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        statusCode: 403,
+        message: "Access denied! Only admin can delete user data.",
+      });
+    }
+
     // cek apakah user ada
-    const user = await userService.findUserById(userId);
+    const user = await userService.findUserById(parseInt(userId));
     if (!user) {
       return res.status(404).json({
         statusCode: 404,
@@ -80,7 +133,7 @@ exports.deleteById = async (req: AuthenticatedRequest, res: Response) => {
     }
 
     // hapus user
-    const deletedUser = await userService.deleteUserById(userId);
+    const deletedUser = await userService.deleteUserById(parseInt(userId));
 
     return res.status(200).json({
       statusCode: 200,
@@ -92,12 +145,13 @@ exports.deleteById = async (req: AuthenticatedRequest, res: Response) => {
     return res.status(500).json({
       statusCode: 500,
       message: "Error internal server!",
+      error: error.message,
     });
   }
 };
 
 // upload profile picture
-exports.uploadProfilePicture = async (
+export const uploadProfilePicture = async (
   req: AuthenticatedRequest,
   res: Response
 ) => {
@@ -114,6 +168,7 @@ exports.uploadProfilePicture = async (
     }
 
     const userId = req.user.id;
+    const originalFileName = req.file.originalname;
 
     // Check if user exists
     const user = await userService.findUserById(userId);
@@ -124,59 +179,62 @@ exports.uploadProfilePicture = async (
       });
     }
 
-    // Prepare file data for cloudinary
-    const fileData = {
-      data: req.file.buffer,
-      name: req.file.originalname,
+    console.log("Uploading to cloudinary:", originalFileName);
+
+    // Upload image to cloudinary
+    const cloudinaryUrl = await cloudinaryUtil.upload(
+      req.file,
+      `user_profiles/user_${userId}_${Date.now()}`
+    );
+
+    // Update user dengan foto baru dan nama asli
+    const updateData = {
+      profile_picture: cloudinaryUrl,
+      profile_picture_original_name: originalFileName,
+      profile_picture_cloudinary_url: cloudinaryUrl,
     };
 
-    console.log("Uploading to cloudinary:", fileData.name);
-
-    // Upload to cloudinary in 'profile-pictures' directory
-    const uploadResult = await filesystem.upload(fileData, "profile-pictures");
-
-    // If user has existing profile picture, remove it
-    if (user.profile_picture) {
+    // Hapus foto lama dari cloudinary jika ada
+    if (user.profile_picture_cloudinary_url) {
       try {
-        await filesystem.remove(user.profile_picture);
+        await cloudinaryUtil.remove(user.profile_picture_cloudinary_url);
+        console.log("Old profile picture removed from Cloudinary");
       } catch (removeError) {
         console.warn("Failed to remove old profile picture:", removeError);
       }
     }
 
-    // Update user with new profile picture URL
-    const updatedUser = await userService.updateUserById(userId, {
-      profile_picture: uploadResult.secure_url,
-    });
+    const updatedUser = await userService.updateUserById(userId, updateData);
 
     return res.status(200).json({
       statusCode: 200,
       message: "Profile picture uploaded successfully!",
       data: {
-        profile_picture: uploadResult.secure_url,
         user: updatedUser,
+        upload_info: {
+          original_filename: originalFileName,
+          cloudinary_url: cloudinaryUrl,
+          upload_timestamp: new Date().toISOString(),
+        },
       },
     });
   } catch (error: any) {
-    console.error("Error uploading profile picture:", error);
+    console.error("Upload error:", error);
     return res.status(500).json({
       statusCode: 500,
-      message: "Error internal server!",
+      message: "Error uploading profile picture!",
       error: error.message,
     });
   }
 };
 
-// remove profile picture
-exports.removeProfilePicture = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
-  try {
-    const userId = req.user.id;
+// mendapatkan detail user berdasarkan ID
+export const show = async (req: Request, res: Response) => {
+  const { userId } = req.params;
 
-    // Check if user exists
-    const user = await userService.findUserById(userId);
+  try {
+    const user = await userService.findUserById(parseInt(userId));
+
     if (!user) {
       return res.status(404).json({
         statusCode: 404,
@@ -184,69 +242,17 @@ exports.removeProfilePicture = async (
       });
     }
 
-    if (!user.profile_picture) {
-      return res.status(400).json({
-        statusCode: 400,
-        message: "No profile picture to remove!",
-      });
-    }
-
-    // Remove from cloudinary
-    try {
-      await filesystem.remove(user.profile_picture);
-    } catch (removeError) {
-      console.warn(
-        "Failed to remove profile picture from cloudinary:",
-        removeError
-      );
-    }
-
-    // Update user to remove profile picture
-    const updatedUser = await userService.updateUserById(userId, {
-      profile_picture: null,
-    });
-
     return res.status(200).json({
       statusCode: 200,
-      message: "Profile picture removed successfully!",
-      data: updatedUser,
-    });
-  } catch (error: any) {
-    console.error("Error removing profile picture:", error);
-    return res.status(500).json({
-      statusCode: 500,
-      message: "Error internal server!",
-    });
-  }
-};
-
-// get profile user sendiri
-exports.getProfile = async (req: AuthenticatedRequest, res: Response) => {
-  try {
-    const userId = req.user.id;
-
-    // cek apakah user ada
-    const user = await userService.findUserById(userId);
-    if (!user) {
-      return res.status(404).json({
-        statusCode: 404,
-        message: "User tidak ditemukan!",
-      });
-    }
-
-    // hapus password dari response
-    const { password, ...userWithoutPassword } = user;
-
-    return res.status(200).json({
-      statusCode: 200,
-      message: "Berhasil mendapatkan profile user!",
-      data: userWithoutPassword,
+      message: "Sukses mendapatkan detail user!",
+      data: user,
     });
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({
       statusCode: 500,
       message: "Error internal server!",
+      error: error.message,
     });
   }
 };

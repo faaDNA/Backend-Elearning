@@ -1,8 +1,7 @@
-import { User } from "../models/user-model";
-
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const userRepository = require("../repositories/user-repository");
+import { UserData } from "../models/user-model";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import * as userRepository from "../repositories/user-repository";
 
 const JWT_SECRET = process.env.JWT_SECRET || "rahasia";
 
@@ -12,7 +11,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "rahasia";
  * @param email
  * @returns
  */
-const findUserByEmail = async (email: string): Promise<User | undefined> => {
+export const findUserByEmail = async (
+  email: string
+): Promise<UserData | null> => {
   return await userRepository.findByEmail(email);
 };
 
@@ -23,10 +24,10 @@ const findUserByEmail = async (email: string): Promise<User | undefined> => {
  * @param password
  * @returns
  */
-const findAccount = async (
+export const findAccount = async (
   email: string,
   password: string
-): Promise<User | undefined> => {
+): Promise<UserData | null> => {
   const user = await findUserByEmail(email);
 
   if (user) {
@@ -36,7 +37,7 @@ const findAccount = async (
     }
   }
 
-  return undefined;
+  return null;
 };
 
 /**
@@ -45,7 +46,7 @@ const findAccount = async (
  * @param input
  * @returns
  */
-const register = async (input: User): Promise<User> => {
+export const register = async (input: UserData): Promise<UserData> => {
   const hashedPassword = await bcrypt.hash(input.password, 10);
   input.password = hashedPassword;
 
@@ -61,7 +62,7 @@ const register = async (input: User): Promise<User> => {
  * @param user
  * @returns
  */
-const authenticate = (user: User) => {
+export const authenticate = (user: UserData) => {
   const payload = {
     sub: user.id, // JWT subject claim
     name: user.name,
@@ -74,11 +75,4 @@ const authenticate = (user: User) => {
   });
 
   return token;
-};
-
-module.exports = {
-  findUserByEmail,
-  findAccount,
-  register,
-  authenticate,
 };

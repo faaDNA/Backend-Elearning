@@ -1,37 +1,70 @@
-# Boilerplate Bootcamp Backend
+# Backend E-Learning API
 
-Contains the code necessary during demonstration of
-the KSM Cyber: Backend Development Bootcamp 2025.
+Backend sistem E-Learning yang dibangun dengan Express.js, TypeScript, PostgreSQL, dan Cloudinary.
 
-## Prerequisites (Local Machine)
+## Features
 
-1. Node.js runtime version 20 and above
-2. Git executables
-3. GitHub account
+- ✅ JWT Authentication dengan role-based authorization (admin/student)
+- ✅ User, Course, dan Book management
+- ✅ Photo upload dengan Cloudinary integration
+- ✅ PostgreSQL database dengan migrations
+- ✅ Admin-only endpoints untuk data modification
+- ✅ Original filename tracking untuk uploads
 
-## Usage
+## Quick Start
 
-1. Clone this repository
-2. Install dependencies:
-   ```
+1. **Install Dependencies**
+
+   ```bash
    npm install
    ```
-3. Copy `.env.example` into `.env` and fill the correct credentials
-4. Migrate and populate the database:
+
+2. **Setup Environment**
+
+   ```bash
+   cp .env.example .env
+   # Edit .env dengan credentials yang benar
    ```
-   npm run db migrate:latest
-   npm run db seed:run
+
+3. **Database Setup**
+
+   ```bash
+   npx knex migrate:latest
+   npx knex seed:run
    ```
-5. Modify codebase and run the development server:
-   ```
+
+4. **Start Server**
+   ```bash
    npm run dev
+   # atau
+   npx ts-node src/server.ts
    ```
-6. View it on your client (Browser, cURL, Postman, etc.)
-7. To stop the server, press `CTRL+C`
-8. Build the app into `dist/` using:
-   ```
-   npm run build
-   ```
+
+## Test Accounts
+
+- **Admin**: admin@elearning.com / rahasia
+- **Student**: student@elearning.com / rahasia
+
+## Documentation
+
+📖 **Complete API Documentation**: [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+
+- Database schema
+- All endpoints dengan examples
+- Authentication guide
+- Photo upload tutorial
+- Error handling
+
+## Server
+
+Server akan berjalan di: http://localhost:3000
+
+API Documentation: http://localhost:3000/api 8. Build the app into `dist/` using:
+
+```
+npm run build
+```
+
 9. Start the app in production mode:
    ```
    npm start

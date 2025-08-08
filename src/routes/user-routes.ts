@@ -1,50 +1,46 @@
-const router = require("express").Router();
+import { Router } from "express";
+import authenticationMiddleware from "../middlewares/authentication-middleware";
+import onlyAdminMiddleware from "../middlewares/only-admin-middleware";
+import upload from "../middlewares/upload-middleware";
+import * as userController from "../controllers/user-controller";
 
-const authenticationMiddleware = require("../middlewares/authentication-middleware");
-const onlyAdminMiddleware = require("../middlewares/only-admin-middleware");
-const onlyStudentMiddleware = require("../middlewares/only-student-middleware");
-const uploadMiddleware = require("../middlewares/upload-middleware");
-const userController = require("../controllers/user-controller");
+const router = Router();
 
-// GET /api/users
+// GET /api/users - list all users
 router.get("/", userController.index);
 
-// GET /api/users/students
-router.get(
-  "/students",
-  // onlyRole('students'),
-  authenticationMiddleware,
-  // onlyStudentMiddleware,
-  userController.index
+// GET /api/users/:userId - get user by ID
+router.get("/:userId", userController.show);
+
+// PATCH /api/users - update own profile (authenticated users)
+router.patch(
+  "/",
+  authenticationMiddleware as any,
+  userController.update as any
 );
 
-// GET /api/users/profile - untuk lihat profile sendiri
-router.get("/profile", authenticationMiddleware, userController.getProfile);
+// PATCH /api/users/:userId - update any user (only admin)
+router.patch(
+  "/:userId",
+  authenticationMiddleware as any,
+  onlyAdminMiddleware as any,
+  userController.updateByAdmin as any
+);
 
-// PATCH /api/users
-router.patch("/", authenticationMiddleware, userController.update);
+// DELETE /api/users/:userId - delete user (only admin)
+router.delete(
+  "/:userId",
+  authenticationMiddleware as any,
+  onlyAdminMiddleware as any,
+  userController.destroy as any
+);
 
-// POST /api/users/upload-profile-picture
+// POST /api/users/upload-profile-picture - upload profile picture (authenticated users)
 router.post(
   "/upload-profile-picture",
-  authenticationMiddleware,
-  uploadMiddleware.single("profile_picture"),
-  userController.uploadProfilePicture
+  authenticationMiddleware as any,
+  upload.single("profile_picture"),
+  userController.uploadProfilePicture as any
 );
 
-// DELETE /api/users/profile-picture
-router.delete(
-  "/profile-picture",
-  authenticationMiddleware,
-  userController.removeProfilePicture
-);
-
-// DELETE /api/users/:id -> hanya boleh oleh ADMIN
-router.delete(
-  "/:id",
-  authenticationMiddleware,
-  onlyAdminMiddleware,
-  userController.deleteById
-);
-
-module.exports = router;
+export default router;

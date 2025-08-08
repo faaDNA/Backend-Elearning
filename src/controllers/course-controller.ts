@@ -4,9 +4,20 @@ import { CourseService } from "../services/course-service";
 
 const courseService = new CourseService();
 
-// CREATE - Membuat course baru
-export const createCourse = async (req: Request, res: Response) => {
+// CREATE - Membuat course baru (hanya admin)
+export const createCourse = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
+    // Check if requester is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied! Only admin can create courses.",
+      });
+    }
+
     // Validasi request body
     if (!req.body || Object.keys(req.body).length === 0) {
       return res.status(400).json({
@@ -144,9 +155,20 @@ export const getAvailableCategories = async (req: Request, res: Response) => {
   }
 };
 
-// UPDATE - Memperbarui course
-export const updateCourse = async (req: Request, res: Response) => {
+// UPDATE - Memperbarui course (hanya admin)
+export const updateCourse = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
+    // Check if requester is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied! Only admin can update courses.",
+      });
+    }
+
     const id = parseInt(req.params.id);
 
     // Validasi ID
@@ -180,9 +202,20 @@ export const updateCourse = async (req: Request, res: Response) => {
   }
 };
 
-// UPDATE - Update status course
-export const updateCourseStatus = async (req: Request, res: Response) => {
+// UPDATE - Update status course (hanya admin)
+export const updateCourseStatus = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
+    // Check if requester is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied! Only admin can update course status.",
+      });
+    }
+
     const id = parseInt(req.params.id);
     const { is_active } = req.body;
 
@@ -229,9 +262,20 @@ export const updateParticipants = async (req: Request, res: Response) => {
   }
 };
 
-// DELETE - Menghapus course
-export const deleteCourse = async (req: Request, res: Response) => {
+// DELETE - Menghapus course (hanya admin)
+export const deleteCourse = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
   try {
+    // Check if requester is admin
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied! Only admin can delete courses.",
+      });
+    }
+
     const id = parseInt(req.params.id);
     const course = await courseService.deleteCourse(id);
     res.status(200).json({

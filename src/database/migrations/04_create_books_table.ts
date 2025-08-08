@@ -1,19 +1,16 @@
 import type { Knex } from "knex";
-import { Course } from "../../models/course-model";
 
 export async function up(knex: Knex): Promise<void> {
-  return knex.schema.createTable(Course.tableName, (table) => {
+  return knex.schema.createTable("books", (table) => {
     table.bigIncrements("id").primary();
     table.string("title").notNullable();
     table.text("description").notNullable();
-    table.string("image").nullable();
-    table.string("instructor").notNullable();
-    table.string("duration").notNullable();
-    table.enum("level", ["Beginner", "Intermediate", "Advanced"]).notNullable();
+    table.string("author").notNullable();
+    table.string("isbn").nullable();
     table.string("category").notNullable();
     table.decimal("price", 12, 2).notNullable();
-    table.integer("max_participants").notNullable();
-    table.integer("current_participants").defaultTo(0);
+    table.string("image").nullable();
+    table.integer("stock").defaultTo(0);
     table.boolean("is_active").defaultTo(true);
     table.timestamp("created_at", { useTz: true }).defaultTo(knex.fn.now());
     table.timestamp("updated_at", { useTz: true }).defaultTo(knex.fn.now());
@@ -22,5 +19,5 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.schema.dropTableIfExists(Course.tableName);
+  await knex.schema.dropTableIfExists("books");
 }

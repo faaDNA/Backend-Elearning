@@ -1,23 +1,32 @@
 /**
  * Database configuration
  */
-require('dotenv').config({
-  path: `${__dirname}/../../../.env${process.env.NODE_ENV === 'test' ? '.test' : ''}`,
+import dotenv from "dotenv";
+import path from "path";
+import type { Knex } from "knex";
+
+// Load environment variables
+dotenv.config({
+  path: path.resolve(
+    process.cwd(),
+    `.env${process.env.NODE_ENV === "test" ? ".test" : ""}`
+  ),
 });
 
-import type { Knex } from 'knex';
-
 const config: Knex.Config = {
-  client: process.env.DATABASE_DRIVER || 'pg',
+  client: process.env.DATABASE_DRIVER || "pg",
   connection: process.env.DATABASE_URL,
-  searchPath: process.env.DATABASE_SCHEMA?.split(',') || ['public'],
+  searchPath: process.env.DATABASE_SCHEMA?.split(",") || ["public"],
   migrations: {
-    directory: __dirname + '/../../database/migrations',
+    directory: path.resolve(__dirname, "../../database/migrations"),
   },
   seeds: {
-    directory: __dirname + '/../../database/seeders',
+    directory: path.resolve(__dirname, "../../database/seeders"),
   },
-  // useNullAsDefault: true,
+  pool: {
+    min: 2,
+    max: 10,
+  },
 };
 
-module.exports = config;
+export default config;

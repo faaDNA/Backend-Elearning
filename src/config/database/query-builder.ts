@@ -1,4 +1,8 @@
 /**
  * Initiate SQL query builder
  */
-module.exports = require('knex')(require('./init'));
+import knexConfig from "./init";
+import knexLib from "knex";
+
+export const knex = knexLib(knexConfig);
+export default knex;
