@@ -15,12 +15,13 @@ dotenv.config({
 
 const config: Knex.Config = {
   client: process.env.DATABASE_DRIVER || "pg",
-  connection: process.env.NODE_ENV === "production" 
-    ? {
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }
-      }
-    : process.env.DATABASE_URL,
+  connection:
+    process.env.NODE_ENV === "production"
+      ? {
+          connectionString: process.env.DATABASE_URL,
+          ssl: { rejectUnauthorized: false },
+        }
+      : process.env.DATABASE_URL,
   searchPath: process.env.DATABASE_SCHEMA?.split(",") || ["public"],
   migrations: {
     directory: path.resolve(__dirname, "../../database/migrations"),
@@ -32,7 +33,8 @@ const config: Knex.Config = {
     min: process.env.NODE_ENV === "production" ? 1 : 2,
     max: process.env.NODE_ENV === "production" ? 3 : 10,
   },
-  acquireConnectionTimeout: process.env.NODE_ENV === "production" ? 60000 : 30000,
+  acquireConnectionTimeout:
+    process.env.NODE_ENV === "production" ? 60000 : 30000,
 };
 
 export default config;
