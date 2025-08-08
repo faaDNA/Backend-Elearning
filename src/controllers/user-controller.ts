@@ -228,6 +228,81 @@ export const uploadProfilePicture = async (
   }
 };
 
+// upload photo (alternative endpoint dengan field name "photo")
+export const uploadPhoto = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    console.log("Upload photo request received");
+    console.log("File:", req.file);
+
+    if (!req.file) {
+      return res.status(400).json({
+        statusCode: 400,
+        message:
+          "File foto tidak ditemukan! Pastikan field name adalah 'photo'",
+      });
+    }
+
+    const userId = req.user.id;
+    const originalFileName = req.file.originalname;
+
+    // Check if user exists
+    const user = await userService.findUserById(userId);
+    if (!user) {
+      return res.status(404).json({
+        statusCode: 404,
+        message: "User tidak ditemukan!",
+      });
+    }
+
+    console.log("Uploading to cloudinary:", originalFileName);
+
+    // Upload image to cloudinary
+    const cloudinaryUrl = await cloudinaryUtil.upload(
+      req.file,
+      `user_profiles/user_${userId}_${Date.now()}`
+    );
+
+    // Update user dengan foto baru dan nama asli
+    const updateData = {
+      profile_picture: cloudinaryUrl,
+      profile_picture_original_name: originalFileName,
+      profile_picture_cloudinary_url: cloudinaryUrl,
+    };
+
+    // Hapus foto lama dari cloudinary jika ada
+    if (user.profile_picture_cloudinary_url) {
+      try {
+        await cloudinaryUtil.remove(user.profile_picture_cloudinary_url);
+        console.log("Old profile picture removed from Cloudinary");
+      } catch (removeError) {
+        console.warn("Failed to remove old profile picture:", removeError);
+      }
+    }
+
+    const updatedUser = await userService.updateUserById(userId, updateData);
+
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Foto profil berhasil diupload!",
+      data: {
+        original_filename: originalFileName,
+        cloudinary_url: cloudinaryUrl,
+        user: updatedUser,
+      },
+    });
+  } catch (error: any) {
+    console.error("Upload photo error:", error);
+    return res.status(500).json({
+      statusCode: 500,
+      message: "Gagal mengupload foto profil",
+      error: error.message,
+    });
+  }
+};
+
 // mendapatkan detail user berdasarkan ID
 export const show = async (req: Request, res: Response) => {
   const { userId } = req.params;

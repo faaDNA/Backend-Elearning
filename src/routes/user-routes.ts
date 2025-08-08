@@ -43,4 +43,12 @@ router.post(
   userController.uploadProfilePicture as any
 );
 
+// POST /api/users/upload-photo - alternative endpoint for upload photo (authenticated users)
+router.post(
+  "/upload-photo",
+  authenticationMiddleware as any,
+  upload.single("photo"),
+  userController.uploadPhoto as any
+);
+
 export default router;
