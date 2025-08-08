@@ -69,20 +69,45 @@ app.use("*", (req, res) => {
   });
 });
 
-// Start server
-const startServer = async () => {
-  try {
-    // Initialize database
-    await connectDB();
+// Initialize database for production
+let dbInitialized = false;
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📝 API Documentation: http://localhost:${PORT}/api`);
-    });
-  } catch (error) {
-    console.error("❌ Failed to start server:", error);
-    process.exit(1);
+// Middleware to ensure database is connected
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    try {
+      await connectDB();
+      console.log("✅ Database Connected Successfully");
+      dbInitialized = true;
+    } catch (error) {
+      console.error("❌ Database connection failed:", error);
+    }
+  }
+  next();
+});
+
+// Start server for local development only
+const startServer = async () => {
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      // Initialize database
+      await connectDB();
+
+      app.listen(PORT, () => {
+        console.log(`🚀 Server is running on port ${PORT}`);
+        console.log(`📝 API Documentation: http://localhost:${PORT}/api`);
+      });
+    } catch (error) {
+      console.error("❌ Failed to start server:", error);
+      process.exit(1);
+    }
   }
 };
 
-startServer();
+// Only start server in development
+if (process.env.NODE_ENV !== "production") {
+  startServer();
+}
+
+// Export app for Vercel serverless function
+export default app;

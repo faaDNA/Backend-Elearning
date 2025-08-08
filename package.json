@@ -7,7 +7,11 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/server.js",
+    "vercel-build": "echo 'No build step required for Vercel'",
     "db": "knex --knexfile src/config/database/init.ts"
+  },
+  "engines": {
+    "node": "18.x"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
