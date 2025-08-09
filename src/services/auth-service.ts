@@ -51,7 +51,7 @@ export const register = async (input: UserData): Promise<UserData> => {
   input.password = hashedPassword;
 
   // secara default, assign role menjadi 'student'
-  input.role = "student";
+  // input.role = "student";
 
   return await userRepository.createUser(input);
 };
